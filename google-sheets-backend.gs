@@ -4,7 +4,7 @@
 const SHEET_NAME = 'Waitlist';
 // Optional: who gets an email for each signup ('' = off).
 // Multiple emails work — just separate them with commas:
-const NOTIFY_EMAIL = 'rsharda@andrew.cmu.edu, jchao2@andrew.cmu.edu';
+const NOTIFY_EMAIL = 'riya@ghostcrewrobotics.com, jasmine@ghostcrewrobotics.com';
 
 function doPost(e) {
   const lock = LockService.getScriptLock();
