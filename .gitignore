@@ -1,0 +1,10 @@
+# generated / process artifacts, not part of the deployed site
+artifact.html
+deploy/
+assets/
+variants/
+
+# Windows/WSL metadata
+*Zone.Identifier
+*sec.endpointdlp
+.DS_Store
