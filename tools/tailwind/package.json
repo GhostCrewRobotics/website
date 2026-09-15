@@ -1,0 +1,13 @@
+{
+  "name": "ghostcrew-tailwind",
+  "private": true,
+  "description": "Compiles /styles.css from input.css. The output is committed; the site itself has no build step.",
+  "scripts": {
+    "build": "tailwindcss -i input.css -o ../../styles.css --minify",
+    "watch": "tailwindcss -i input.css -o ../../styles.css --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "tailwindcss": "^4.3.3"
+  }
+}

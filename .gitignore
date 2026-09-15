@@ -4,6 +4,9 @@ deploy/
 assets/
 variants/
 
+# build tooling (styles.css is compiled from tools/tailwind and committed)
+node_modules/
+
 # Windows/WSL metadata
 *Zone.Identifier
 *sec.endpointdlp
