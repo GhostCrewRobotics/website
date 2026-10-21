@@ -19,7 +19,7 @@ One static page, plus a Vercel signup function. The page has no build step on de
 - **Domain**: `ghostcrewrobotics.com`, registered at Vercel; DNS managed in Vercel → Domains
 - **Waitlist backend**: [`api/waitlist.mjs`](api/waitlist.mjs) on Vercel (Node 24), backed by
   [`lib/waitlist.mjs`](lib/waitlist.mjs). Saves new submissions to Google Sheets and can
-  add opted-in subscribers to MailerLite. Uses built-in Node APIs, with no runtime packages.
+  add waitlist subscribers to MailerLite. Uses built-in Node APIs, with no runtime packages.
 - **Newsletter**: Write and send campaigns manually in MailerLite. Subscriber syncing is
   paused by default. Deploying does not send email or process existing Sheet contacts.
 - **Email**: Zoho Mail (free plan) — `riya@` / `jasmine@ghostcrewrobotics.com`; MX/SPF/DKIM/DMARC
@@ -68,13 +68,15 @@ The first request adds missing header labels. If existing columns have different
 the request fails rather than overwrite them. Review the layout before deployment. The
 function never reads existing signup rows or imports them to MailerLite.
 
-An unchecked newsletter box saves the pilot request with `not_requested`. An opted-in
-signup is saved with `queued` while syncing is paused. Those queued rows are retained for
+Joining the waitlist also subscribes the person to GhostCrew email updates, as explained
+above the form. There is no separate newsletter checkbox. New signups record `yes` and
+the displayed signup wording in columns G–H, with `queued` in column I while syncing is
+paused. Existing rows retain their original consent values. Queued rows are retained for
 later review; enabling syncing does **not** automatically import or send to them.
 
 When syncing is explicitly enabled, only the new submission is sent to MailerLite. Existing
 unsubscribed, bounced, junk, or unconfirmed subscribers are preserved. Subscriber errors
-are recorded as `error` without losing the pilot request. If the final status write fails,
+are recorded as `error` without losing the waitlist signup. If the final status write fails,
 the row stays `queued`; check Vercel logs by Signup ID before attempting any manual retry.
 There are no scheduled jobs or automatic batch retries.
 
@@ -93,7 +95,7 @@ There are no scheduled jobs or automatic batch retries.
 No campaign-sending, welcome-email, bulk-import, or newsletter-scheduling code is included.
 The old founder notification emails belonged to Apps Script; this endpoint does not send
 them. MailerLite offers Account settings → Email notifications for new newsletter subscribers
-once syncing is enabled. Non-newsletter pilot requests remain visible in the Sheet.
+once syncing is enabled. All waitlist signups remain visible in the Sheet.
 
 The old [`google-sheets-backend.gs`](google-sheets-backend.gs) is retained as a rollback
 reference. The form no longer calls it. The Vercel endpoint validates input, checks browser

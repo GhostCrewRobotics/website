@@ -11,7 +11,7 @@ const credentials = {
 };
 const google = 'https://sheets.googleapis.com/v4/spreadsheets/test-sheet/values/';
 const mailerlite = 'https://connect.mailerlite.com/api/subscribers';
-const data = { name: 'Test Person', email: 'test@example.invalid', organization: 'Test Facility', role: 'Coach', fields: '4–7', newsletter: 'yes' };
+const data = { name: 'Test Person', email: 'test@example.invalid', organization: 'Test Facility', role: 'Coach', fields: '4–7' };
 
 function request(input = data, overrides = {}) {
   return new Request('https://www.ghostcrewrobotics.com/api/waitlist', {
@@ -98,13 +98,13 @@ test('default pause saves opt-in and consent but never contacts MailerLite', asy
   assert.ok(!f.calls.some((c) => c.url.startsWith(mailerlite)));
 });
 
-test('pilot signup without newsletter consent never contacts MailerLite, even when enabled', async () => {
+test('every waitlist signup records email subscription without a separate newsletter field', async () => {
   const f = fixture({ env: { MAILERLITE_SYNC_ENABLED: 'true' } });
-  assert.equal((await f.handler(request({ ...data, newsletter: '' }))).status, 200);
-  assert.equal(f.rows[0][6], 'no');
-  assert.equal(f.rows[0][7], '');
-  assert.equal(f.rows[0][8], 'not_requested');
-  assert.ok(!f.calls.some((c) => c.url.startsWith(mailerlite)));
+  assert.equal((await f.handler(request(data))).status, 200);
+  assert.equal(f.rows[0][6], 'yes');
+  assert.equal(f.rows[0][7], CONSENT_TEXT);
+  assert.equal(f.updates[0][0], 'synced');
+  assert.equal(f.calls.filter((c) => c.url === mailerlite && c.method === 'POST').length, 1);
 });
 
 test('enabled sync adds only the submitted email, and never imports the Sheet or sends a campaign', async () => {
@@ -145,7 +145,7 @@ test('Sheet failure never attempts MailerLite and never claims success', async (
   assert.ok(!JSON.stringify(f.logs).includes('upstream details'));
 });
 
-test('newsletter sync failure preserves pilot signup and records error for review', async () => {
+test('newsletter sync failure preserves waitlist signup and records error for review', async () => {
   const f = fixture({ mailerFailure: true, env: { MAILERLITE_SYNC_ENABLED: 'true' } });
   assert.equal((await f.handler(request())).status, 200);
   assert.equal(f.rows.length, 1);
@@ -201,7 +201,7 @@ test('honeypot accepts silently without any external request', async () => {
 for (const invalid of [
   { ...data, name: '' }, { ...data, email: 'not-an-email' }, { ...data, name: 'x'.repeat(121) },
   { ...data, organization: 'x'.repeat(201) }, { ...data, role: 'Admin' }, { ...data, fields: '1000' },
-  { ...data, newsletter: 'anything' }, { ...data, name: 'Name\nInjected' },
+  { ...data, name: 'Name\nInjected' },
 ]) {
   test(`invalid input rejected without external requests: ${Object.keys(invalid).find((key) => invalid[key] !== data[key])}`, async () => {
     const f = fixture();
@@ -228,7 +228,7 @@ test('oversized and malformed bodies rejected without external requests', async 
 
 test('JSON payloads work, and preview URLs are allowed only in preview', async () => {
   const preview = 'https://website-preview.example.vercel.app';
-  const payload = { ...data, newsletter: true };
+  const payload = { ...data };
   const req = () => request(data, { body: JSON.stringify(payload), headers: { Origin: preview, 'Content-Type': 'application/json' } });
   const production = fixture({ env: { VERCEL_URL: 'website-preview.example.vercel.app' } });
   assert.equal((await production.handler(req())).status, 403);

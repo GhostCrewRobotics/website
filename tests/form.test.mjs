@@ -8,7 +8,7 @@ const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const code = html.split('/* ---------- waitlist form ---------- */')[1].split('</script>')[0];
 
 function fixture(fetchImpl) {
-  const label = { textContent: 'Request Early Pilot Access' };
+  const label = { textContent: 'Join the waitlist' };
   const btn = { disabled: false, querySelector: () => label, setAttribute() {}, removeAttribute() {}, focus() {} };
   const error = { hidden: true };
   let submit, replacement, focusCount = 0, validity = true;
@@ -18,7 +18,7 @@ function fixture(fetchImpl) {
     addEventListener: (event, listener) => { assert.equal(event, 'submit'); submit = listener; },
     replaceWith: (node) => { replacement = node; },
   };
-  const fields = { name: 'Test Person', email: 'test@example.invalid', newsletter: 'yes' };
+  const fields = { name: 'Test Person', email: 'test@example.invalid' };
   class FakeFormData { constructor() { return Object.entries(fields); } }
   const nodes = { 'waitlist-form': form, 'waitlist-submit': btn, 'form-error': error };
   const context = vm.createContext({
@@ -45,7 +45,7 @@ test('form success requires explicit JSON confirmation from the endpoint', async
   const f = fixture(async (url, init) => { call = { url, init }; return Response.json({ ok: true }); });
   await f.submit();
   assert.equal(call.url, '/api/waitlist');
-  assert.equal(call.init.body.get('newsletter'), 'yes');
+  assert.equal(call.init.body.get('newsletter'), null);
   assert.equal(call.init.body.get('email'), 'test@example.invalid');
   assert.ok(!('mode' in call.init));
   assert.ok(f.replacement());
@@ -64,7 +64,7 @@ for (const [name, response] of [
     assert.equal(f.replacement(), undefined);
     assert.equal(f.error.hidden, false);
     assert.equal(f.btn.disabled, false);
-    assert.equal(f.label.textContent, 'Request Early Pilot Access');
+    assert.equal(f.label.textContent, 'Join the waitlist');
   });
 }
 
@@ -86,8 +86,8 @@ test('invalid browser input never reaches the endpoint', async () => {
   assert.equal(count, 0);
 });
 
-test('newsletter consent is optional and stored with the exact checkbox wording', () => {
-  const checkbox = html.match(/<input\b[^>]*id="wl-newsletter"[^>]*>/)[0];
-  assert.ok(!/\bchecked\b|\brequired\b/.test(checkbox));
-  assert.ok(html.includes(`<span>${CONSENT_TEXT}</span>`));
+test('the waitlist explains email updates without a separate newsletter checkbox', () => {
+  assert.ok(!html.includes('wl-newsletter'));
+  assert.ok(html.includes(`>${CONSENT_TEXT}</p>`));
+  assert.ok(!/pilot/i.test(html));
 });
