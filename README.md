@@ -20,7 +20,8 @@ One static page, plus a Vercel signup function. The page has no build step on de
 - **Waitlist backend**: [`api/waitlist.mjs`](api/waitlist.mjs) on Vercel (Node 24), backed by
   [`lib/waitlist.mjs`](lib/waitlist.mjs). Saves new submissions to Google Sheets and can
   add waitlist subscribers to MailerLite. Uses built-in Node APIs, with no runtime packages.
-- **Newsletter**: Write and send campaigns manually in MailerLite. Subscriber syncing is
+- **Newsletter**: HTML templates and sent-issue snapshots live in [`newsletters/`](newsletters/).
+  Write and send campaigns manually in MailerLite. Subscriber syncing is
   paused by default. Deploying does not send email or process existing Sheet contacts.
 - **Email**: Zoho Mail (free plan) — `riya@` / `jasmine@ghostcrewrobotics.com`; MX/SPF/DKIM/DMARC
   records live in Vercel DNS
