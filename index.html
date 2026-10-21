@@ -451,7 +451,7 @@
         <ul class="mt-10 grid gap-4 text-[15px] text-white/65" role="list">
           <li class="flex gap-3"><svg viewBox="0 0 16 16" class="mt-1 h-4 w-4 shrink-0 text-brand-400" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m3 8.5 3 3 7-7"/></svg>Built for baseball and softball complexes of any size</li>
           <li class="flex gap-3"><svg viewBox="0 0 16 16" class="mt-1 h-4 w-4 shrink-0 text-brand-400" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m3 8.5 3 3 7-7"/></svg>A direct line to the engineers building it</li>
-          <li class="flex gap-3"><svg viewBox="0 0 16 16" class="mt-1 h-4 w-4 shrink-0 text-brand-400" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m3 8.5 3 3 7-7"/></svg>No spam. One email when pilots open near you.</li>
+          <li class="flex gap-3"><svg viewBox="0 0 16 16" class="mt-1 h-4 w-4 shrink-0 text-brand-400" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m3 8.5 3 3 7-7"/></svg>Updates on field tests and pilot availability</li>
         </ul>
       </div>
 
@@ -460,22 +460,22 @@
           <div class="pointer-events-none absolute inset-x-10 top-0 h-px bg-linear-to-r from-transparent via-brand-400/60 to-transparent" aria-hidden="true"></div>
 
           <div id="form-slot" aria-live="polite">
-            <form id="waitlist-form" action="https://script.google.com/macros/s/AKfycbwrHpAcC_Di9NL6cYhjfzNZ6UkFFVGhboS7Z7nxf6juKRvLO2yE-i5SW9AfX4E4qCgrEg/exec" method="POST" class="grid gap-5 sm:grid-cols-2">
+            <form id="waitlist-form" action="/api/waitlist" method="POST" class="grid gap-5 sm:grid-cols-2">
               <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off">
 
               <div class="grid gap-2">
                 <label for="wl-name" class="text-[13px] font-medium text-white/75">Name <span class="text-brand-400" aria-hidden="true">*</span></label>
-                <input id="wl-name" name="name" type="text" required autocomplete="name"
+                <input id="wl-name" name="name" type="text" required maxlength="120" autocomplete="name"
                   class="h-12 w-full rounded-xl border border-white/[0.08] bg-black/50 px-4 text-[15px] text-white shadow-[inset_0_1px_2px_rgba(0,0,0,.6)] outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-white/25 hover:border-white/15 focus:border-brand-400/70 focus:ring-4 focus:ring-brand-400/15">
               </div>
               <div class="grid gap-2">
                 <label for="wl-email" class="text-[13px] font-medium text-white/75">Work email <span class="text-brand-400" aria-hidden="true">*</span></label>
-                <input id="wl-email" name="email" type="email" required autocomplete="email"
+                <input id="wl-email" name="email" type="email" required maxlength="254" autocomplete="email"
                   class="h-12 w-full rounded-xl border border-white/[0.08] bg-black/50 px-4 text-[15px] text-white shadow-[inset_0_1px_2px_rgba(0,0,0,.6)] outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-white/25 hover:border-white/15 focus:border-brand-400/70 focus:ring-4 focus:ring-brand-400/15">
               </div>
               <div class="grid gap-2 sm:col-span-2">
                 <label for="wl-org" class="text-[13px] font-medium text-white/75">Facility / organization <span class="font-normal text-white/35">(optional)</span></label>
-                <input id="wl-org" name="organization" type="text" autocomplete="organization"
+                <input id="wl-org" name="organization" type="text" maxlength="200" autocomplete="organization"
                   class="h-12 w-full rounded-xl border border-white/[0.08] bg-black/50 px-4 text-[15px] text-white shadow-[inset_0_1px_2px_rgba(0,0,0,.6)] outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-white/25 hover:border-white/15 focus:border-brand-400/70 focus:ring-4 focus:ring-brand-400/15">
               </div>
               <div class="grid gap-2">
@@ -501,6 +501,11 @@
                 </select>
               </div>
 
+              <label for="wl-newsletter" class="flex items-start gap-3 text-[13px] leading-relaxed text-white/75 sm:col-span-2">
+                <input id="wl-newsletter" name="newsletter" type="checkbox" value="yes" class="mt-1 h-4 w-4 shrink-0" style="accent-color: #10d975">
+                <span>Send me occasional GhostCrew news, product updates, and pilot announcements.</span>
+              </label>
+
               <div id="form-error" role="alert" hidden class="rounded-xl border border-red-400/30 bg-red-500/[0.08] px-4 py-3 text-sm leading-relaxed text-red-200 sm:col-span-2">
                 Something went wrong on our end. Try again in a minute, or email
                 <a href="mailto:riya@ghostcrewrobotics.com" class="font-medium text-red-100 underline underline-offset-4">riya@ghostcrewrobotics.com</a> and we&rsquo;ll add you by hand.
@@ -512,7 +517,6 @@
                   <span data-label>Request Early Pilot Access</span>
                   <svg viewBox="0 0 16 16" class="h-4 w-4 transition-transform duration-200 group-hover/btn:translate-x-0.5" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
                 </button>
-                <p class="mt-4 text-center text-xs text-white/35">We only use this to contact you about the GhostCrew pilot.</p>
               </div>
             </form>
           </div>
@@ -558,6 +562,10 @@
           <li>
             <p class="text-white/85">Jasmine Chao <span class="text-white/35">&middot; Co-founder, Software</span></p>
             <a href="mailto:jasmine@ghostcrewrobotics.com" class="text-white/55 underline decoration-white/15 underline-offset-4 transition-colors hover:text-brand-400 hover:decoration-brand-400/50">jasmine@ghostcrewrobotics.com</a>
+          </li>
+          <li>
+            <p class="text-white/85">Madison Heiman <span class="text-white/35">&middot; Co-founder</span></p>
+            <a href="mailto:madison@ghostcrewrobotics.com" class="text-white/55 underline decoration-white/15 underline-offset-4 transition-colors hover:text-brand-400 hover:decoration-brand-400/50">madison@ghostcrewrobotics.com</a>
           </li>
         </ul>
       </div>
@@ -731,6 +739,7 @@
 
   /* carry the field count into the pilot form */
   document.getElementById('roi-cta').addEventListener('click', function () {
+    if (!document.getElementById('wl-fields')) return;
     var n = +inFields.value;
     document.getElementById('wl-fields').selectedIndex = n <= 3 ? 1 : n <= 7 ? 2 : 3;
     setTimeout(function () { document.getElementById('wl-name').focus({ preventScroll: true }); }, reduceMotion ? 0 : 700);
@@ -759,6 +768,7 @@
 
   form.addEventListener('submit', function (e) {
     e.preventDefault();
+    if (btn.disabled) return;
     if (!form.reportValidity()) return;
 
     var idleLabel = btnLabel.textContent;
@@ -775,26 +785,19 @@
     btn.setAttribute('aria-busy', 'true');
     btnLabel.textContent = 'Sending…';
 
-    var action = form.getAttribute('action');
-    if (action.indexOf('YOUR_FORM_ID') !== -1) {
-      window.setTimeout(succeed, 600); // demo mode until a real endpoint is pasted in
-      return;
-    }
-    if (action.indexOf('script.google.com') !== -1) {
-      // Google Apps Script endpoint: opaque no-cors send (Apps Script doesn't
-      // serve readable CORS responses); resolution = delivered, rejection = network failure
-      fetch(action, { method: 'POST', mode: 'no-cors', body: new FormData(form) })
-        .then(succeed)
-        .catch(fail);
-      return;
-    }
-    fetch(action, {
+    var controller = new AbortController();
+    var timeout = window.setTimeout(function () { controller.abort(); }, 45000);
+    fetch(form.getAttribute('action'), {
       method: 'POST',
-      body: new FormData(form),
-      headers: { Accept: 'application/json' }
+      body: new URLSearchParams(new FormData(form)),
+      headers: { Accept: 'application/json' },
+      signal: controller.signal
     }).then(function (res) {
-      if (res.ok) { succeed(); } else { fail(); }
-    }).catch(fail);
+      if (!res.ok) throw new Error('Signup failed');
+      return res.json();
+    }).then(function (result) {
+      if (result.ok === true) { succeed(); } else { fail(); }
+    }).catch(fail).finally(function () { window.clearTimeout(timeout); });
   });
 })();
 </script>

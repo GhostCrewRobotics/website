@@ -3,7 +3,7 @@
 Marketing site + waitlist for [GhostCrew](https://ghostcrewrobotics.com): the autonomous
 robot that drags and chalks baseball & softball fields.
 
-One static page, no build step on deploy. `index.html` + `styles.css` is the whole site.
+One static page, plus a Vercel signup function. The page has no build step on deploy.
 
 ## Stack
 
@@ -17,34 +17,91 @@ One static page, no build step on deploy. `index.html` + `styles.css` is the who
 - **Font**: Inter via Google Fonts, with a system-font fallback
 - **Hosting**: Vercel — auto-deploys `main` on every push (project connected in the Vercel dashboard)
 - **Domain**: `ghostcrewrobotics.com`, registered at Vercel; DNS managed in Vercel → Domains
-- **Waitlist backend**: Google Apps Script web app that appends each signup to a private
-  Google Sheet and emails both founders. Source in [`google-sheets-backend.gs`](google-sheets-backend.gs);
-  it runs deployed inside the Google Sheet (Extensions → Apps Script), not from this repo.
+- **Waitlist backend**: [`api/waitlist.mjs`](api/waitlist.mjs) on Vercel (Node 24), backed by
+  [`lib/waitlist.mjs`](lib/waitlist.mjs). Saves new submissions to Google Sheets and can
+  add opted-in subscribers to MailerLite. Uses built-in Node APIs, with no runtime packages.
+- **Newsletter**: Write and send campaigns manually in MailerLite. Subscriber syncing is
+  paused by default. Deploying does not send email or process existing Sheet contacts.
 - **Email**: Zoho Mail (free plan) — `riya@` / `jasmine@ghostcrewrobotics.com`; MX/SPF/DKIM/DMARC
   records live in Vercel DNS
 
 ## Editing
 
-Serve the folder locally (asset paths are root-relative), e.g. `npx http-server . -p 5173`,
-then open http://localhost:5173. Push to `main` to deploy.
+For a static preview, serve the folder locally (asset paths are root-relative), e.g.
+`python3 -m http.server 5173`, then open http://localhost:5173. That static server does not
+run `/api/waitlist`. Use a Vercel preview to verify the deployed function. Push to `main`
+to deploy production only after configuration and review.
+
+Run `npm test` with Node 24. All service requests are simulated, with temporary test keys
+and fake email addresses. The tests do not read real credentials, contact APIs, import
+subscribers, or send email.
 
 Brand tokens (colors extracted from the pitch deck), copy inventory, and the form contract
 are documented in [`design/BRIEF.md`](design/BRIEF.md). The short version:
 background `#040C08`, brand green `#10D975`, dark-green rules `#0A5C25`, body gray `#E7E6E6`.
 
-## Waitlist backend notes
+## Signup configuration
 
-- Submissions land in the "GhostCrew Waitlist" Google Sheet (Waitlist tab), one row per signup,
-  plus a notification email to both founders (`NOTIFY_EMAIL` in the script).
-- **Changing the script** (e.g. notification recipients): edit it in the Sheet's Apps Script
-  editor, then **Deploy → Manage deployments → ✏️ → Version: New version → Deploy**.
-  Edits do nothing until a new version is deployed. The URL never changes.
-- The form posts via `fetch(..., {mode: 'no-cors'})` — Apps Script doesn't serve readable
-  CORS responses, so the site treats a delivered request as success.
-- Spam protection: hidden `_gotcha` honeypot field; the script pretends success but saves
-  nothing when it's filled.
+Configure these server-only environment variables in Vercel:
+
+| Variable | Value |
+| --- | --- |
+| `GOOGLE_SERVICE_ACCOUNT_JSON` | Entire service-account JSON object, including the outer braces |
+| `GOOGLE_SHEET_ID` | Spreadsheet URL segment between `/d/` and `/edit` |
+| `GOOGLE_SHEET_NAME` | Optional; defaults to `Waitlist` |
+| `MAILERLITE_API_TOKEN` | Private MailerLite API token |
+| `MAILERLITE_GROUP_ID` | Numeric ID of GhostCrew Updates |
+| `MAILERLITE_SYNC_ENABLED` | Defaults to false. Leave absent or set `false` until subscriber syncing is authorized. |
+
+Enable the Sheets API in the service account's Google Cloud project, then share only the
+signup spreadsheet with the service account as an Editor. Keep all credentials in Vercel,
+not in HTML, Git, or chat. `.env.example` contains names only, with no credentials.
+
+### Spreadsheet layout
+
+The function uses the existing `Waitlist` tab. Columns A–F match the original Apps Script:
+Timestamp, Name, Email, Facility / organization, Role, Number of fields. New submissions
+also write G–K: Newsletter opt-in, Newsletter consent text, MailerLite status, Signup ID,
+Sync updated at. The timestamp is UTC ISO 8601, and RAW writes keep submitted text literal.
+
+The first request adds missing header labels. If existing columns have different labels,
+the request fails rather than overwrite them. Review the layout before deployment. The
+function never reads existing signup rows or imports them to MailerLite.
+
+An unchecked newsletter box saves the pilot request with `not_requested`. An opted-in
+signup is saved with `queued` while syncing is paused. Those queued rows are retained for
+later review; enabling syncing does **not** automatically import or send to them.
+
+When syncing is explicitly enabled, only the new submission is sent to MailerLite. Existing
+unsubscribed, bounced, junk, or unconfirmed subscribers are preserved. Subscriber errors
+are recorded as `error` without losing the pilot request. If the final status write fails,
+the row stays `queued`; check Vercel logs by Signup ID before attempting any manual retry.
+There are no scheduled jobs or automatic batch retries.
+
+### Rollout without sending email
+
+1. Keep `MAILERLITE_SYNC_ENABLED` absent or `false`. Test with simulated services locally.
+2. For a real preview test, configure Preview variables using a separate test Sheet and a
+   founder-owned email. Production-only variables are not available in Preview deployments.
+3. Verify the signup appears in the test Sheet and that a save failure keeps the form's
+   error state and input. With syncing paused, no MailerLite requests are made.
+4. Review the code and deploy the production configuration. Do not import existing contacts.
+5. Before enabling future signup syncing, inspect MailerLite welcome automations, group
+   triggers, and API double opt-in settings: adding a subscriber can trigger those emails.
+   Only set `MAILERLITE_SYNC_ENABLED=true` and redeploy when that behavior is authorized.
+
+No campaign-sending, welcome-email, bulk-import, or newsletter-scheduling code is included.
+The old founder notification emails belonged to Apps Script; this endpoint does not send
+them. MailerLite offers Account settings → Email notifications for new newsletter subscribers
+once syncing is enabled. Non-newsletter pilot requests remain visible in the Sheet.
+
+The old [`google-sheets-backend.gs`](google-sheets-backend.gs) is retained as a rollback
+reference. The form no longer calls it. The Vercel endpoint validates input, checks browser
+origins, and preserves the `_gotcha` honeypot. For additional abuse controls, use the existing
+Vercel firewall. The browser shows success only after a confirmed Sheet save.
 
 ## Contacts
 
 - Riya Sharda (hardware) — riya@ghostcrewrobotics.com
 - Jasmine Chao (software) — jasmine@ghostcrewrobotics.com
+- Madison Heiman (co-founder) — madison@ghostcrewrobotics.com

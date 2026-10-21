@@ -6,6 +6,10 @@ variants/
 
 # build tooling (styles.css is compiled from tools/tailwind and committed)
 node_modules/
+.vercel/
+.env*
+!.env.example
+*service-account*.json
 
 # Windows/WSL metadata
 *Zone.Identifier
